@@ -1,0 +1,105 @@
+Select *
+from COVID.Deaths
+Order by 3,4
+
+Select *
+from COVID.Vaccinations
+Order by 3,4
+
+--Observing the data that we are going to explore
+
+Select Location,date , total_cases,new_cases,total_deaths,population
+From `COVID.Deaths`
+order by 1,2
+
+--Looking at the total cases vs the total deaths
+
+Select Location,date , total_cases,total_deaths,population,(Total_deaths/Total_cases)*100 as MortalityRate
+From `COVID.Deaths`
+order by 1,2
+
+--Showing the mortality rate of COVID in your respective country 
+
+Select Location,date , total_cases,population,(total_cases/population)*100 as InfectionPercentage
+From `COVID.Deaths`
+order by 1,2
+
+--Observing the total cases vs the population
+
+Select Location, max(total_cases),population,max(total_cases/population)*100 as InfectionPercentage
+From `COVID.Deaths`
+Group by Location,population
+order by InfectionPercentage desc
+^
+--Finding the countries with the highest infection count
+
+select Location, max(cast(total_deaths as int)) as TotalDeathcount
+From `COVID.Deaths`
+where continent is not null
+Group by location
+order by TotalDeathcount desc
+
+--^Finding the countries withthe highest deaths per population
+
+select Location, max(cast(total_deaths as int)) as TotalDeathcount
+From `COVID.Deaths`
+where continent is null
+Group by Location
+order by TotalDeathcount desc
+
+--Looking into the differences between continents
+
+select Continent, max(cast(total_deaths as int)) as TotalDeathcount
+From `COVID.Deaths`
+where continent is not null
+Group by continent
+order by TotalDeathcount desc
+
+--Showing the continents and their death counts
+
+COVID GLOBAL STATISTICS
+
+Select *
+From `covid19-406621.COVID.Deaths`dea
+JOIN `covid19-406621.COVID.Vaccinations`vac
+on dea.Location = vac.Location
+and dea.date = vac.date
+
+
+
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.Location order by dea.location) as Vac_Count
+From `covid19-406621.COVID.Deaths`dea
+JOIN `covid19-406621.COVID.Vaccinations`vac
+on dea.Location = vac.Location
+and dea.date = vac.date
+where dea.continent is not null
+order by 2,3
+
+--observing total populations and vaccinations 
+
+
+--Temp Table
+create table #PercentagePopulationVaccinated
+
+Continent nvarchar(255),
+location nvarchar(255),
+date datetime,
+population numeric,
+new_vaccination numeric,
+vac_count numeric)
+
+
+
+
+
+insert into #PercentagePopulationVaccinated
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.Location order by dea.location) as Vac_Count
+From `covid19-406621.COVID.Deaths`dea
+JOIN `covid19-406621.COVID.Vaccinations`vac
+on dea.Location = vac.Location
+and dea.date = vac.date
+where dea.continent is not null
+order by 2,3
+
+SELECT* ,(Vac_Count/Population)*100
+from #PercentagePopulationVaccinated
